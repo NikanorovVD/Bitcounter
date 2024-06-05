@@ -6,7 +6,8 @@
 #include <time.h>
 #include "double_linked_list.h"
 
-int count_ones(int val){
+int count_ones(int val)
+{
     int res = 0;
     while (val)
     {
@@ -16,21 +17,25 @@ int count_ones(int val){
     return res;
 }
 
-int count_zeros(int val){
+int count_zeros(int val)
+{
     return sizeof(val)*8 - count_ones(val);
 }
 
 
-int* generate_random_array(int size){
-  int* array = (int*)malloc(size*sizeof(int));
+DblLinkedList* generate_random_DblLinkedList(int size)
+{
+  DblLinkedList* list = initDblLinkedList();
   srand(time(NULL));
-  for(int i = 0; i < size; i++){
-    array[i] = rand();
+  for(int i = 0; i < size; i++)
+  {
+    pushBack(list, i);
   }
-  return array;
+  return list;
 }
 
-void print_result(int thread_num, int counted, int sum){
+void print_result(int thread_num, int counted, int sum)
+{
   printf("============thread%d============\n", thread_num);
   printf("counted: %d\n", counted);
   printf("%s bits: %d\n", (thread_num == 1) ? "ones":"zeros", sum);
@@ -38,7 +43,8 @@ void print_result(int thread_num, int counted, int sum){
 }
 
 
-typedef struct thread_args{
+typedef struct thread_args
+{
   list_node* lst;
   int counted;
   int sum;
@@ -52,18 +58,20 @@ typedef struct thread_args{
 
 pthread_mutex_t m;
 
-void* count_bits_in_DbLinkList(void* args){
+void* count_bits_in_DbLinkList(void* args)
+{
   thread_args* th_args = (thread_args*) args;
   list_node* p = th_args->lst;
   int count_all;
-  do {
+  do 
+  {
     pthread_mutex_lock( &m );
-      *(th_args->count_all) = *(th_args->count_all) + 1;
-      count_all = *(th_args->count_all);
+    *(th_args->count_all) = *(th_args->count_all) + 1;
+    count_all = *(th_args->count_all);
     pthread_mutex_unlock( &m );
 
     if(count_all > th_args->len) break;
-    th_args->sum += (th_args->count_ones) ? count_ones(*((int*)p->val)) : count_zeros(*((int*)p->val));
+    th_args->sum += (th_args->count_ones) ? count_ones(p->val) : count_zeros(p->val);
     th_args->counted ++;
     list_node* next = (th_args->from_end) ? p->prev : p->next;
     deletElem(p);
@@ -73,30 +81,33 @@ void* count_bits_in_DbLinkList(void* args){
 }
 
 
-int main(int argc, char **argv){
-
+int main(int argc, char **argv)
+{
   int array_size;
 
-  if(argc == 1){
+  if(argc == 1)
+  {
     printf("No array size input argument\nUsing 10000 as default\n");
     array_size = 10000;
   }
 
-  else if(argc == 2){
-      array_size = atoi(argv[1]);
-      if(array_size <= 0){
-        printf("Array size must be a positive number\n");
-        return 1;
-      }
+  else if(argc == 2)
+  {
+    array_size = atoi(argv[1]);
+    if(array_size <= 0){
+      printf("Array size must be a positive number\n");
+      return 1;
+    }
   }
 
-  else {
+  else 
+  {
     printf("Must be one input argument\n");
     return 1;
   }
 
-  int* values = generate_random_array(array_size);
-  DblLinkedList* list = fromArray(values,array_size,sizeof(int) );
+
+  DblLinkedList* list = generate_random_DblLinkedList(array_size);
 
 
   pthread_t thread1, thread2;
@@ -129,7 +140,6 @@ int main(int argc, char **argv){
   print_result(2, args2.counted, args2.sum);
 
   free(list);
-  free(values);
   pthread_mutex_destroy(&m);
   
   return 0;
