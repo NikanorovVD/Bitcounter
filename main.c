@@ -8,18 +8,18 @@
 
 int count_ones(int val)
 {
-    int res = 0;
-    while (val)
-    {
-        res++;
-        val &= val-1;
-    }
-    return res;
+  int res = 0;
+  while (val)
+  {
+    res++;
+    val &= val - 1;
+  }
+  return res;
 }
 
 int count_zeros(int val)
 {
-    return sizeof(val)*8 - count_ones(val);
+  return sizeof(val) * 8 - count_ones(val);
 }
 
 
@@ -29,7 +29,7 @@ DblLinkedList* generate_random_DblLinkedList(int size)
   srand(time(NULL));
   for(int i = 0; i < size; i++)
   {
-    pushBack(list, i);
+    pushBack(list, rand());
   }
   return list;
 }
@@ -38,7 +38,7 @@ void print_result(int thread_num, int counted, int sum)
 {
   printf("============thread%d============\n", thread_num);
   printf("counted: %d\n", counted);
-  printf("%s bits: %d\n", (thread_num == 1) ? "ones":"zeros", sum);
+  printf("%s bits: %d\n", (thread_num == 1) ? "ones" : "zeros", sum);
   printf("===============================\n");
 }
 
@@ -50,9 +50,7 @@ typedef struct thread_args
   int sum;
   bool from_end;
   bool count_ones;
-
-  int* count_all; //the number of elements counted by both streams in total
-  int len;
+  bool* end;
 } thread_args;
 
 
@@ -62,40 +60,39 @@ void* count_bits_in_DbLinkList(void* args)
 {
   thread_args* th_args = (thread_args*) args;
   list_node* p = th_args->lst;
-  int count_all;
   do 
   {
-    pthread_mutex_lock( &m );
-    *(th_args->count_all) = *(th_args->count_all) + 1;
-    count_all = *(th_args->count_all);
-    pthread_mutex_unlock( &m );
-
-    if(count_all > th_args->len) break;
-    th_args->sum += (th_args->count_ones) ? count_ones(p->val) : count_zeros(p->val);
-    th_args->counted ++;
-    list_node* next = (th_args->from_end) ? p->prev : p->next;
+    pthread_mutex_lock(&m);
+    if(*(th_args->end)) break; 
+    int val = p->val;
+    list_node* next = th_args->from_end ? p->prev : p->next;
+    if(!next) *(th_args->end) = true;
     deletElem(p);
+    pthread_mutex_unlock(&m);
+
+    th_args->sum += (th_args->count_ones) ? count_ones(val) : count_zeros(val);
+    th_args->counted ++;
     p = next;
-   
   } while (p != NULL);
 }
 
 
 int main(int argc, char **argv)
 {
-  int array_size;
+  int list_size;
 
   if(argc == 1)
   {
-    printf("No array size input argument\nUsing 10000 as default\n");
-    array_size = 10000;
+    printf("No list size input argument\nUsing 10000 as default\n");
+    list_size = 10000;
   }
 
   else if(argc == 2)
   {
-    array_size = atoi(argv[1]);
-    if(array_size <= 0){
-      printf("Array size must be a positive number\n");
+    list_size = atoi(argv[1]);
+    if(list_size <= 0)
+    {
+      printf("List size must be a positive number\n");
       return 1;
     }
   }
@@ -106,9 +103,7 @@ int main(int argc, char **argv)
     return 1;
   }
 
-
-  DblLinkedList* list = generate_random_DblLinkedList(array_size);
-
+  DblLinkedList* list = generate_random_DblLinkedList(list_size);
 
   pthread_t thread1, thread2;
   thread_args args1, args2;
@@ -124,9 +119,8 @@ int main(int argc, char **argv)
   args1.count_ones = true;
   args2.count_ones = false;
 
-  static int count_all = 0;
-  args1.count_all = args2.count_all = &count_all;
-  args1.len = args2.len = array_size;
+  static bool end;
+  args1.end = args2.end = &end;
 
   pthread_mutex_init(&m, NULL);
   pthread_create(&thread1, NULL, count_bits_in_DbLinkList, &args1);

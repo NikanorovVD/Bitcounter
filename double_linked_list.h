@@ -7,9 +7,9 @@ typedef struct list_node
 
 typedef struct DblLinkedList 
 {
-    int size;
-    list_node *head;
-    list_node *tail;
+  int size;
+  list_node *head;
+  list_node *tail;
 } DblLinkedList;
 
 DblLinkedList* initDblLinkedList();
@@ -17,5 +17,3 @@ DblLinkedList* initDblLinkedList();
 void pushBack(DblLinkedList *list, int value);
 
 void deletElem(list_node *lst);
-
-DblLinkedList* fromArray(void *arr, int n, int size);
