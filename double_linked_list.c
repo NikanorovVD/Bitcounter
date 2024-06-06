@@ -5,6 +5,11 @@
 DblLinkedList* initDblLinkedList() 
 {
   DblLinkedList *tmp = (DblLinkedList*) malloc(sizeof(DblLinkedList));
+  if(!tmp)
+  {
+    printf("malloc error\n");
+    return NULL;
+  }
   tmp->size = 0;
   tmp->head = tmp->tail = NULL;
 
@@ -14,7 +19,11 @@ DblLinkedList* initDblLinkedList()
 void pushBack(DblLinkedList *list, int value) 
 {
   list_node *tmp = (list_node*) malloc(sizeof(list_node));
-
+  if(!tmp) 
+  {
+    printf("malloc error\n");
+    return;
+  }
   tmp->val = value;
   tmp->next = NULL;
   tmp->prev = list->tail;

@@ -26,6 +26,8 @@ int count_zeros(int val)
 DblLinkedList* generate_random_DblLinkedList(int size)
 {
   DblLinkedList* list = initDblLinkedList();
+  if(!list) return NULL;
+
   srand(time(NULL));
   for(int i = 0; i < size; i++)
   {
@@ -74,6 +76,7 @@ void* count_bits_in_DbLinkList(void* args)
     th_args->counted ++;
     p = next;
   } while (p != NULL);
+  return NULL;
 }
 
 
@@ -104,6 +107,11 @@ int main(int argc, char **argv)
   }
 
   DblLinkedList* list = generate_random_DblLinkedList(list_size);
+  if(!list)
+  {
+    printf("can't allocate memory");
+    return 2;
+  }
 
   pthread_t thread1, thread2;
   thread_args args1, args2;
@@ -122,12 +130,34 @@ int main(int argc, char **argv)
   static bool end;
   args1.end = args2.end = &end;
 
+  int status;
   pthread_mutex_init(&m, NULL);
-  pthread_create(&thread1, NULL, count_bits_in_DbLinkList, &args1);
-  pthread_create(&thread2, NULL, count_bits_in_DbLinkList, &args2);
 
-  pthread_join(thread1, NULL);
-  pthread_join(thread2, NULL);
+  status = pthread_create(&thread1, NULL, count_bits_in_DbLinkList, &args1);
+  if (status != 0) 
+  {
+    printf("can't create thread, status = %d\n", status);
+    return 3;
+  }
+
+  status = pthread_create(&thread2, NULL, count_bits_in_DbLinkList, &args2);
+  if (status != 0) 
+  {
+    printf("can't create thread, status = %d\n", status);
+    return 4;
+  }
+
+  status = pthread_join(thread1, NULL);
+  if (status != 0) {
+    printf("can't join thread, status = %d\n", status);
+    return 5;
+  }
+
+  status = pthread_join(thread2, NULL);
+  if (status != 0) {
+    printf("can't join thread, status = %d\n", status);
+    return 6;
+  }
 
   print_result(1, args1.counted, args1.sum);
   printf("\n");
