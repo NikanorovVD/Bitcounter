@@ -4,9 +4,13 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <time.h>
+#include <limits.h>
 #include "double_linked_list.h"
 
-int count_ones(int val)
+
+#define VAL_TYPE int
+
+int count_ones(VAL_TYPE val)
 {
   int res = 0;
   while (val)
@@ -17,11 +21,10 @@ int count_ones(int val)
   return res;
 }
 
-int count_zeros(int val)
+int count_zeros(VAL_TYPE val)
 {
-  return sizeof(val) * 8 - count_ones(val);
+  return sizeof(VAL_TYPE) * CHAR_BIT - count_ones(val);
 }
-
 
 DblLinkedList* generate_random_DblLinkedList(int size)
 {
@@ -31,7 +34,14 @@ DblLinkedList* generate_random_DblLinkedList(int size)
   srand(time(NULL));
   for(int i = 0; i < size; i++)
   {
-    pushBack(list, rand());
+    VAL_TYPE* val = malloc(sizeof(int));
+    if(!val)
+    {
+      printf("malloc error\n");
+      exit(7);
+    }
+    *val = rand();
+    pushBack(list, (void*)val);
   }
   return list;
 }
@@ -44,7 +54,6 @@ void print_result(int thread_num, int counted, int sum)
   printf("===============================\n");
 }
 
-
 typedef struct thread_args
 {
   list_node* lst;
@@ -55,7 +64,6 @@ typedef struct thread_args
   bool* end;
 } thread_args;
 
-
 pthread_mutex_t m;
 
 void* count_bits_in_DbLinkList(void* args)
@@ -65,8 +73,12 @@ void* count_bits_in_DbLinkList(void* args)
   do 
   {
     pthread_mutex_lock(&m);
-    if(*(th_args->end)) break; 
-    int val = p->val;
+    if(*(th_args->end))
+    {
+      pthread_mutex_unlock(&m);
+      break;
+    }
+    int val = *(VAL_TYPE*)(p->val);
     list_node* next = th_args->from_end ? p->prev : p->next;
     if(!next) *(th_args->end) = true;
     deletElem(p);
@@ -78,7 +90,6 @@ void* count_bits_in_DbLinkList(void* args)
   } while (p != NULL);
   return NULL;
 }
-
 
 int main(int argc, char **argv)
 {
@@ -127,7 +138,7 @@ int main(int argc, char **argv)
   args1.count_ones = true;
   args2.count_ones = false;
 
-  static bool end;
+  bool end;
   args1.end = args2.end = &end;
 
   int status;

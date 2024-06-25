@@ -1,6 +1,6 @@
 typedef struct list_node
 {
-  int val; 
+  void* val; 
   struct list_node* next; 
   struct list_node* prev; 
 } list_node;
@@ -14,6 +14,6 @@ typedef struct DblLinkedList
 
 DblLinkedList* initDblLinkedList();
 
-void pushBack(DblLinkedList *list, int value);
+void pushBack(DblLinkedList *list, void* value);
 
 void deletElem(list_node *lst);

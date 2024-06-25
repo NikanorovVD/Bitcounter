@@ -1,5 +1,6 @@
 #include <malloc.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include "double_linked_list.h"
 
 DblLinkedList* initDblLinkedList() 
@@ -16,7 +17,7 @@ DblLinkedList* initDblLinkedList()
   return tmp;
 }
 
-void pushBack(DblLinkedList *list, int value) 
+void pushBack(DblLinkedList *list, void* value) 
 {
   list_node *tmp = (list_node*) malloc(sizeof(list_node));
   if(!tmp) 
@@ -47,5 +48,6 @@ void deletElem(list_node *lst)
     prev->next = NULL; 
   if (next)
     next->prev = NULL; 
+  free(lst->val);
   free(lst); 
 }

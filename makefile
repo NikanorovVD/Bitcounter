@@ -1,7 +1,7 @@
 TARGET = bitcounter
 CC = gcc
 CFLAGS = -c
-LDFLAGS = -lpthread -Werror
+LDFLAGS = -lpthread -Werror -g
 
 all: $(TARGET)
 	

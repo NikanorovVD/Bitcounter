@@ -1,2 +1,4 @@
 bitcounter
+bitcounter.exe
 *.o
+.vscode
